@@ -1,6 +1,6 @@
 import csv
 import sqlite3
-
+from uuid import uuid7
 
 DB_NAME = "establishments.db"
 TABLE_NAME = "greater_ny"
@@ -12,26 +12,15 @@ TABLE_SCHEMA = {
     "street": "TEXT",  # non-nullable
     "city": "TEXT",  # non-nullable
     "state": "TEXT",  # non-nullable
-    "zip_code": "NUMERIC",  # non-nullable
+    "zip_code": "TEXT",  # non-nullable
     "latitude": "REAL",  # non-nullable
     "longitude": "REAL",  # non-nullable
     "category": "TEXT",
     "cuisine": "TEXT",
-    "specialty": "TEXT",
-    "latest_visit": "TEXT",  # date
     "have_been": "NUMERIC",  # boolean, non-nullable
     "closed": "NUMERIC",  # boolean, non-nullable
-    "would_return": "TEXT",
-    "comments": "TEXT",
+    "would_return": "NUMERIC",  # boolean, non-nullable
 }
-
-
-def replace_null(row: list) -> list:
-    for i, value in enumerate(row):
-        if value == "NULL":
-            row[i] = None
-
-    return row
 
 
 def sync(file_name: str):
@@ -39,15 +28,23 @@ def sync(file_name: str):
         reader = csv.reader(f)
 
         header = next(reader)
-        assert header == list(TABLE_SCHEMA.keys())
+        assert set(header) > (TABLE_SCHEMA.keys() - {"uuid"})
 
-        rows = (tuple(replace_null(row)) for row in reader)
+        rows = []
+        for row in reader:
+            row = [value for name, value in zip(header, row) if name in TABLE_SCHEMA]
+            rows.append([str(uuid7())] + row)
 
         connection = sqlite3.connect(DB_NAME, autocommit=True)
         with connection:
             connection.execute(f"DROP TABLE IF EXISTS {TABLE_NAME}")
-            connection.execute(f"CREATE TABLE {TABLE_NAME}({', '.join(f'{k} {v}' for k, v in TABLE_SCHEMA.items())})")
-            connection.executemany(f"INSERT INTO {TABLE_NAME} VALUES({', '.join('?' for _ in range(len(TABLE_SCHEMA)))})", rows)
+            connection.execute(
+                f"CREATE TABLE {TABLE_NAME}({', '.join(f'{k} {v}' for k, v in TABLE_SCHEMA.items())})"
+            )
+            connection.executemany(
+                f"INSERT INTO {TABLE_NAME} VALUES({', '.join('?' for _ in range(len(TABLE_SCHEMA)))})",
+                rows,
+            )
 
 
 if __name__ == "__main__":
