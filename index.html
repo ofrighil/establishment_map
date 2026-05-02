@@ -3,6 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <title>Establishment Map</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗽</text></svg>">
+  <link
+    rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="style.css"></style>
 </head>
-<body></body>
+<body>
+  <aside class="sidebar">
+    <header class="masthead">
+      <h1>NYC <em>Establishments</b></h1>
+    </header>
+    <div class="filters">
+      <label>
+        <input id="search" type="search" placeholder="Search" autocomplete="off">
+      </label>
+
+      <div class="filter-rows">
+        <select id="category"><option value="">All categories</option></select>
+        <select id="cuisine"><option value="">All cuisines</option></select>
+      </div>
+
+      <div class="filter-chips" role="group" aria-label="Status filter">
+        <button type="button" class="chip" data-status="all" disabled>All</button>
+        <button type="button" class="chip" data-status="wouldReturn">Would Return</button>
+        <button type="button" class="chip" data-status="unvisited">Unvisited</button>
+        <button type="button" class="chip" data-status="wouldNotReturn">Wouldn't Return</button>
+      </div>
+    </div>
+    <ol class="establishments" id="establishments"></ol>
+  </aside>
+
+  <main id="map" aria-label="Map of NYC establishments"></main>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+  <script src="map.js"></script>
+</body>
 </html>

@@ -23,7 +23,7 @@ TABLE_SCHEMA = {
     "cuisine": "TEXT",
     "have_been": "INTEGER NOT NULL",
     "closed": "INTEGER NOT NULL",
-    "would_return": "INTEGER NOT NULL",
+    "would_return": "INTEGER",
 }
 INDEXES = ["category", "cuisine", "have_been"]
 VIEW_FULL_ADDRESS = "v_full_address"
@@ -31,10 +31,10 @@ VIEW_FULL_ADDRESS = "v_full_address"
 assert TABLE_SCHEMA.keys() > set(INDEXES)
 
 def convert(name: str, value: str):
-    if name in ["have_been", "closed", "would_return"]:
-        return True if value == "TRUE" else False
     if value == "NULL":
         return None
+    if name in ["have_been", "closed", "would_return"]:
+        return True if value == "TRUE" else False
 
     return value
 
