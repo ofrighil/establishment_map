@@ -2,7 +2,10 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Establishment Map</title>
+  <title>NYC Food</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗽</text></svg>">
   <link
     rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -14,10 +17,11 @@
 <body>
   <aside class="sidebar">
     <header class="masthead">
-      <h1>NYC <em>Establishments</b></h1>
+      <h1>NYC <em>Food</em></h1>
+      <div class="last-updated" id="last-updated">Last updated: May 3rd, 2026</div>
     </header>
     <div class="filters">
-      <label>
+      <label class="search">
         <input id="search" type="search" placeholder="Search" autocomplete="off">
       </label>
 
@@ -27,11 +31,13 @@
       </div>
 
       <div class="filter-chips" role="group" aria-label="Status filter">
-        <button type="button" class="chip" data-status="all" disabled>All</button>
-        <button type="button" class="chip" data-status="wouldReturn">Would Return</button>
-        <button type="button" class="chip" data-status="unvisited">Unvisited</button>
-        <button type="button" class="chip" data-status="wouldNotReturn">Wouldn't Return</button>
+        <button type="button" class="filter-chip" data-status="all" disabled>All</button>
+        <button type="button" class="filter-chip" data-status="wouldReturn">Would Return</button>
+        <button type="button" class="filter-chip" data-status="unvisited">Unvisited</button>
+        <button type="button" class="filter-chip" data-status="wouldNotReturn">Wouldn't Return</button>
       </div>
+
+      <div class="count" id="count">Loading...</div>
     </div>
     <ol class="establishments" id="establishments"></ol>
   </aside>

@@ -25,9 +25,9 @@ const map = L.map("map", { zoomControl: false })
   .setMinZoom(11);
 
 L.control.zoom({ position: "bottomright" }).addTo(map);
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
   attribution:
-    '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
 }).addTo(map);
 
 // ## Icons
@@ -51,7 +51,7 @@ function escapeHTML(s) {
 
 function popupRow(title, value) {
   if (value)
-    return `<div class="p-row"><strong>${title}:</strong> ${value}</div>`;
+    return `<div class="popup-row"><strong>${title}:</strong> ${value}</div>`;
   else return "";
 }
 
@@ -73,14 +73,12 @@ function popup(establishment) {
   return `
   <div class="popup">
     <h3>${establishment.name}</h3>
-    <div class="popup-meta">
+    <div class="popup-metadata">
       ${escapeHTML(establishment.category)} ${establishment.cuisine ? ` · ${escapeHTML(establishment.cuisine)}` : ""}
     </div>
-    <div class="popup-row">
-      ${popupRow("Address", escapeHTML(establishment.full_address))}
-      ${popupRow("Phone", escapeHTML(establishment.phone_number))}
-      ${popupRow("Website", urlHTML(establishment.website))}
-    </div>
+    ${popupRow("Address", escapeHTML(establishment.full_address))}
+    ${popupRow("Phone", escapeHTML(establishment.phone_number))}
+    ${popupRow("Website", urlHTML(establishment.website))}
   </div>
   `;
 }
@@ -153,13 +151,14 @@ function displayList(establishments) {
     const item = document.createElement("li");
     item.dataset.id = establishment.id;
 
+    const status = getStatus(establishment);
+
     item.innerHTML = `
-    <div>${escapeHTML(establishment.name)}</div>
-    <div>
-    </div>
+    <div class="establishment-name">${escapeHTML(establishment.name)}</div>
+    <div class="establishment-metadata">
       <span>${escapeHTML(establishment.category)}</span>
-      ${establishment.cuisine ? `<span class="dot">·</span><span>${escapeHTML(establishment.cuisine)}</span>` : ""}
-    <div>
+      <span class="dot">·</span><span>${escapeHTML(establishment.cuisine)}</span>
+      <span class="dot">·</span><span class="status ${status.cls}">${status.text}</span>
     </div>
     <div class="establishment-address">${establishment.full_address}</div>
     `;
@@ -170,6 +169,26 @@ function displayList(establishments) {
   establishmentsList.appendChild(fragment);
 }
 
+function getStatus(establishment) {
+  if (!establishment.have_been) {
+    return { text: "Unvisited", cls: "unvisited" };
+  }
+  
+  return establishment.would_return 
+    ? { text: "Would return", cls: "would-return" }
+    : { text: "Wouldn't return", cls: "would-not-return" };
+}
+
+function divIcon(establishment) {
+  return L.divIcon({
+    className: "",
+    html: `<div class="icon ${getStatus(establishment).cls}"></div>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -8],
+  });
+}
+
 function show() {
   icons.forEach((icon) => icon.remove());
   icons.clear();
@@ -177,17 +196,18 @@ function show() {
   const establishmentsFiltered = establishments.filter(establishmentFilter);
 
   establishmentsFiltered.forEach((establishment) => {
-    const icon = L.marker([establishment.latitude, establishment.longitude])
-      .bindPopup(popup(establishment), { maxWidth: 300 })
+    const icon = L.marker([establishment.latitude, establishment.longitude], { icon: divIcon(establishment) })
+      .bindPopup(popup(establishment), { maxWidth: 300, autoPan: false })
       .addTo(map);
 
     icon.on("click", () => select(establishment.id, false));
     icons.set(establishment.id, icon);
   });
 
-  // displayList(
-  //   establishmentsFiltered.toSorted((a, b) => a.name.localeCompare(b.name)),
-  // );
+  displayList(
+    establishmentsFiltered.toSorted((a, b) => a.name.localeCompare(b.name)),
+  );
+  document.getElementById("count").textContent = `Showing ${establishmentsFiltered.length} of ${establishments.length} establishments`;
 }
 
 // # Document
@@ -221,9 +241,9 @@ document.getElementById("cuisine").addEventListener("change", (event) => {
   show();
 });
 
-document.querySelectorAll(".chip").forEach((chip) => {
+document.querySelectorAll(".filter-chip").forEach((chip) => {
   chip.addEventListener("click", () => {
-    document.querySelectorAll(".chip[disabled]").forEach((chip) => {
+    document.querySelectorAll(".filter-chip[disabled]").forEach((chip) => {
       chip.disabled = false;
     });
     chip.disabled = true;
@@ -286,6 +306,7 @@ async function load() {
   const cuisines = rows(
     db.exec("SELECT DISTINCT cuisine FROM greater_ny ORDER BY cuisine"),
   );
+
   populateDropdown("cuisine", cuisines);
 
   show();
@@ -293,4 +314,8 @@ async function load() {
 
 // # Main
 
-load();
+load().catch(
+  err => {
+    dcoument.getElementById("count").textContent = "Failed to load data";
+    console.log(err);
+});
