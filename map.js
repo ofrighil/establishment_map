@@ -176,7 +176,7 @@ function getStatus(establishment) {
   
   return establishment.would_return 
     ? { text: "Would return", cls: "would-return" }
-    : { text: "Wouldn't return", cls: "would-not-return" };
+    : { text: "Would not return", cls: "would-not-return" };
 }
 
 function divIcon(establishment) {
